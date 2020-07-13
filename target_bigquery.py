@@ -64,7 +64,7 @@ def define_schema(field, name):
                 schema_mode = 'NULLABLE'
             else:
                 field = types
-            
+
     if isinstance(field['type'], list):
         if field['type'][0] == "null":
             schema_mode = 'NULLABLE'
@@ -97,7 +97,7 @@ def define_schema(field, name):
 def build_schema(schema):
     SCHEMA = []
     for key in schema['properties'].keys():
-        
+
         if not (bool(schema['properties'][key])):
             # if we endup with an empty record.
             continue
@@ -151,7 +151,7 @@ def persist_lines_job(project_id, dataset_id, lines=None, truncate=False, valida
             state = msg.value
 
         elif isinstance(msg, singer.SchemaMessage):
-            table = msg.stream 
+            table = msg.stream
             schemas[table] = msg.schema
             key_properties[table] = msg.key_properties
             #tables[table] = bigquery.Table(dataset.table(table), schema=build_schema(schemas[table]))
@@ -238,7 +238,7 @@ def persist_lines_stream(project_id, dataset_id, lines=None, validate_records=Tr
             state = msg.value
 
         elif isinstance(msg, singer.SchemaMessage):
-            table = msg.stream 
+            table = msg.stream
             schemas[table] = msg.schema
             key_properties[table] = msg.key_properties
             tables[table] = bigquery.Table(dataset.table(table), schema=build_schema(schemas[table]))
@@ -247,7 +247,10 @@ def persist_lines_stream(project_id, dataset_id, lines=None, validate_records=Tr
             try:
                 tables[table] = bigquery_client.create_table(tables[table])
             except exceptions.Conflict:
-                pass
+                bigquery_client.copy_table(tables[table], dataset.table(table + "_bak"))
+                # Force regenerate the table
+                bigquery_client.delete_table(tables[table])
+                bigquery_client.create_table(tables[table], schema=build_schema(schemas[table]))
 
         elif isinstance(msg, singer.ActivateVersionMessage):
             # This is experimental and won't be used yet
