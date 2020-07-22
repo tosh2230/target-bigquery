@@ -21,7 +21,7 @@ from google.cloud import bigquery
 from google.cloud.bigquery.job import SourceFormat
 from google.cloud.bigquery import Dataset, WriteDisposition
 from google.cloud.bigquery import SchemaField
-from google.cloud.bigquery import LoadJobConfig
+from google.cloud.bigquery import LoadJobConfig, CopyJobConfig
 from google.api_core import exceptions
 
 try:
@@ -247,9 +247,9 @@ def persist_lines_stream(project_id, dataset_id, lines=None, validate_records=Tr
             try:
                 tables[table] = bigquery_client.create_table(tables[table])
             except exceptions.Conflict:
-                lc = LoadJobConfig()
-                lc.write_disposition = "WRITE_TRUNCATE"
-                bigquery_client.copy_table(tables[table], dataset.table(table + "_bak"), job_config=lc)
+                jc = CopyJobConfig()
+                jc.write_disposition = "WRITE_TRUNCATE"
+                bigquery_client.copy_table(tables[table], dataset.table(table + "_bak"), job_config=jc)
                 # Force regenerate the table
                 bigquery_client.delete_table(tables[table])
                 bigquery_client.create_table(tables[table], schema=build_schema(schemas[table]))
