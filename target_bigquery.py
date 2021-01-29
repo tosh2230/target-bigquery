@@ -244,15 +244,9 @@ def persist_lines_stream(project_id, dataset_id, lines=None, validate_records=Tr
             tables[table] = bigquery.Table(dataset.table(table), schema=build_schema(schemas[table]))
             rows[table] = 0
             errors[table] = None
-            try:
-                tables[table] = bigquery_client.create_table(tables[table])
-            except exceptions.Conflict:
-                jc = CopyJobConfig()
-                jc.write_disposition = "WRITE_TRUNCATE"
-                bigquery_client.copy_table(tables[table], dataset.table(table + "_bak"), job_config=jc)
-                # Force regenerate the table
-                bigquery_client.delete_table(tables[table])
-                tables[table] = bigquery_client.create_table(tables[table])
+            ## Let this recreateed:
+            bigquery_client.delete_table(tables[table], not_found_ok=True)
+            tables[table] = bigquery_client.create_table(tables[table], exists_ok=True)
 
         elif isinstance(msg, singer.ActivateVersionMessage):
             # This is experimental and won't be used yet
