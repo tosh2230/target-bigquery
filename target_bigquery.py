@@ -252,7 +252,7 @@ def persist_lines_stream(project_id, dataset_id, lines=None, validate_records=Tr
                 bigquery_client.copy_table(tables[table], dataset.table(table + "_bak"), job_config=jc)
                 # Force regenerate the table
                 bigquery_client.delete_table(tables[table])
-                bigquery_client.create_table(tables[table])
+                tables[table] = bigquery_client.create_table(tables[table])
 
         elif isinstance(msg, singer.ActivateVersionMessage):
             # This is experimental and won't be used yet
