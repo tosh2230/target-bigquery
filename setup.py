@@ -19,6 +19,7 @@ setup(name='target-bigquery',
           'google-cloud-bigquery==1.26.0',
           'pytz==2018.4',
           'oauth2client',
+          "google-auth<2.0dev,>=1.19.1",
       ],
       entry_points='''
           [console_scripts]
